@@ -33,7 +33,7 @@ Gimii is an Android library that provides a consent-raiser pop-in for Android ap
 
 1. Add the Gimii package to your project:
  ```gradle
-implementation("fr.gimii:sdk:1.0.4")
+implementation("fr.gimii:sdk:1.0.0-beta1")
 ```
 
 2. Import the module in your code:
