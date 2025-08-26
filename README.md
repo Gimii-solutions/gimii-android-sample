@@ -1,6 +1,3 @@
-
-![Banner]("https://github.com/user-attachments/assets/fbc16f48-367c-418b-9e04-7cf79704f32f")
-
 ![Demo Screenshot](https://github.com/Gimii-solutions/gimii-ios-demo/blob/bdefa8240d38efb1aac2bd8ca5ab1a6196771d59/demo.png)
 
 # Demo Android App for Gimii SDK
@@ -33,7 +30,7 @@ Gimii is an Android library that provides a consent-raiser pop-in for Android ap
 
 1. Add the Gimii package to your project:
  ```gradle
-implementation("fr.gimii:sdk:1.0.0-beta1")
+implementation("fr.gimii:sdk:1.1.0-beta1")
 ```
 
 2. Import the module in your code:
