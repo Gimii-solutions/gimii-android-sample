@@ -18,7 +18,6 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
-import fr.gimii.GimiiEnvironment
 import fr.gimii.GimiiManager
 import fr.gimii.gimiisampleapp.ui.theme.GimiiSampleAppTheme
 import io.didomi.sdk.Didomi
@@ -33,7 +32,7 @@ class MainActivity : FragmentActivity() {
 
         Didomi.getInstance().setupUI(this)
 
-        val gimiiManager = GimiiManager.getInstance(environment = GimiiEnvironment.PRODUCTION)
+        val gimiiManager = GimiiManager.getInstance()
 
         // Gimii is executed when the user refuse the CMP
         Didomi.getInstance().addEventListener(object : EventListener() {
