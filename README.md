@@ -85,6 +85,7 @@ This will automatically include the following targeting keys in your ad requests
 
 - `"gimii"`: The current raiser ID
 - `"gimii-asso"`: The selected association ID
+- `"gimii-cr"`: The concatenation between current raiser ID and selected association ID
 
 These values are added to both `addCustomTargeting` and registered via `addNetworkExtrasBundle`, ensuring they are included in all ad requests.
 
