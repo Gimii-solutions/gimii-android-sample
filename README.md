@@ -26,6 +26,16 @@ Gimii is an Android library that provides a consent-raiser pop-in for Android ap
 - Supports Google Ads custom targeting
 - Easy integration into any Android app with minimal setup
 
+### Environments
+
+By default, the SDK uses the **production** environment.
+
+If you wish to run against the **dev** or **staging** or **qa** environments for testing, you can pass an optional `environment` parameter to the `execute` function:
+
+```swift
+GimiiManager.getInstance(environment = GimiiEnvironment.PRODUCTION)
+```
+
 ## Installation
 
 1. Add the Gimii package to your project:
