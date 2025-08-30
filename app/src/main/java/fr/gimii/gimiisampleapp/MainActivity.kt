@@ -32,12 +32,16 @@ class MainActivity : FragmentActivity() {
 
         Didomi.getInstance().setupUI(this)
 
-        val gimiiManager = GimiiManager.getInstance()
+        val gimiiManager = GimiiManager.getInstance(environment = GimiiEnvironment.STAGING)
+
+        val raiserId = "RAISER_ID"
+
+        gimiiManager.execute(raiserId, this)
 
         // Gimii is executed when the user refuse the CMP
         Didomi.getInstance().addEventListener(object : EventListener() {
             override fun noticeClickDisagree(event: NoticeClickDisagreeEvent) {
-                gimiiManager.execute("RAISER_ID", this@MainActivity)
+                gimiiManager.execute(raiserId, this@MainActivity)
             }
         })
 

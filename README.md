@@ -13,8 +13,6 @@ It demonstrates:
 
 ---
 
-
-
 # Gimii SDK for Android
 
 Gimii is an Android library that provides a consent-raiser pop-in for Android applications. This pop-in encourages users who initially refuse cookie consent to reconsider their decision in exchange for supporting a chosen charity.
@@ -30,10 +28,10 @@ Gimii is an Android library that provides a consent-raiser pop-in for Android ap
 
 By default, the SDK uses the **production** environment.
 
-If you wish to run against the **dev** or **staging** or **qa** environments for testing, you can pass an optional `environment` parameter to the `execute` function:
+If you wish to run against the**staging** or **qa** environments for testing, you can pass an optional `environment` parameter to the `execute` function:
 
-```swift
-GimiiManager.getInstance(environment = GimiiEnvironment.PRODUCTION)
+```kotlin
+GimiiManager.getInstance(environment = GimiiEnvironment.STAGING)
 ```
 
 ## Installation
@@ -71,9 +69,15 @@ The library need a `AppCompactActivity` or `ActivityFragment` in order to displa
 You can start the execution of the Gimii SDK as follow : 
 
 ```kotlin
+val gimiiManager = GimiiManager.getInstance()
+gimiiManager.execute("RAISER_ID", this)
+```
+
+If you have a primary capping to 0, add the following code:
+```kotlin
 Didomi.getInstance().addEventListener(object : EventListener() {
       override fun noticeClickDisagree(event: NoticeClickDisagreeEvent) {
-           val gimiiManager = GimiiManager.getInstance(environment = GimiiEnvironment.PRODUCTION)
+           val gimiiManager = GimiiManager.getInstance()
            gimiiManager.execute("RAISER_ID", this@MainActivity)
       }
 })
