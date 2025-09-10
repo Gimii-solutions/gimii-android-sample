@@ -2,51 +2,37 @@
 
 # Demo Android App for Gimii SDK
 
-This is a simple demo application showcasing the integration of the **Gimii iOS SDK**.
 
-It demonstrates:
-- A full-screen **transparent WebView** displaying the Gimii consent raiser pop-in.
-- The WebView allows touch passthrough: users can interact with underlying UI elements like a visible **UISwitch**, proving transparency works.
-- Integration of **Didomi v1.87.0** to handle GDPR consent.
-- Integration of **Google Mobile Ads SDK v11.10.0**, with a demo **GAM banner ad**.
-- A static image mimicking the LeBonCoin interface to simulate a real-world use case.
+## Integrate Gimii SDK in your app
 
----
+This guide explains how to add the Gimii Android SDK to your application, configure environments, enable logging, and optionally apply ad targeting to Google Ad Manager/AdMob requests.
 
-# Gimii SDK for Android
-
-Gimii is an Android library that provides a consent-raiser pop-in for Android applications. This pop-in encourages users who initially refuse cookie consent to reconsider their decision in exchange for supporting a chosen charity.
-
-## Features
-
-- Displays a consent pop-in with user interaction
-- Interoperates with Didomi for consent tracking
-- Supports Google Ads custom targeting
-- Easy integration into any Android app with minimal setup
-
-### Environments
-
-By default, the SDK uses the **production** environment.
-
-If you wish to run against the**staging** or **qa** environments for testing, you can pass an optional `environment` parameter to the `execute` function:
+### 1) Add the dependency
+In your app module `build.gradle.kts`:
 
 ```kotlin
-GimiiManager.getInstance(environment = GimiiEnvironment.STAGING)
+dependencies {
+    implementation("fr.gimii:sdk:1.1.0-beta1")
+}
 ```
 
-## Installation
+Make sure your project repositories include Maven Central (usually already present):
 
-1. Add the Gimii package to your project:
- ```gradle
-implementation("fr.gimii:sdk:1.1.0-beta1")
-```
-
-2. Import the module in your code:
 ```kotlin
-import fr.gimii.GimiiManager
+// settings.gradle.kts or top-level build.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 ```
 
-3. Replace Didomi IDs, inside the App.kt.
+The Gimii SDK depends on:
+- Didomi SDK
+- Google Mobile Ads (for ad targeting)
+
+### 2) Replace Didomi IDs, inside the App.kt.
 ```kotlin
 val parameters = DidomiInitializeParameters(
       apiKey = "API_KEY",
@@ -54,54 +40,107 @@ val parameters = DidomiInitializeParameters(
  )
 ```
 
-4. If using Google Ads, add your application id inside the manifest.
+### 3) If using Google Ads, add your application id inside the manifest.
 ```kotlin
 <meta-data
     android:name="com.google.android.gms.ads.APPLICATION_ID"
     android:value="###########"/>
 ```
 
-## Usage
 
-### MainActivity
 
-The library need a `AppCompactActivity` or `ActivityFragment` in order to display the Gimii dialog.
-You can start the execution of the Gimii SDK as follow : 
+### 4) Initialize and start Gimii
+Call Gimii from an `FragmentActivity` (e.g., your main Activity) after your CMP is ready:
 
 ```kotlin
-val gimiiManager = GimiiManager.getInstance()
-gimiiManager.execute("RAISER_ID", this)
-```
+import fr.gimii.GimiiManager
+import fr.gimii.GimiiEnvironment
+import fr.gimii.AppMode
+import fr.gimii.services.AdService
+import fr.gimii.utils.Logger
 
-If you have a primary capping to 0, add the following code:
-```kotlin
+// ... inside an Activity (FragmentActivity)
+val gimii = GimiiManager.getInstance(
+    environment = GimiiEnvironment.PRODUCTION, // QA | STAGING | PRODUCTION
+    logMode = Logger.Mode.INFO                 // DEBUG for verbose logs, INFO for standard
+)
+
+gimiiManager.execute(raiserId, this)
+
+// Gimii is executed when the user refuse the CMP
 Didomi.getInstance().addEventListener(object : EventListener() {
-      override fun noticeClickDisagree(event: NoticeClickDisagreeEvent) {
-           val gimiiManager = GimiiManager.getInstance()
-           gimiiManager.execute("RAISER_ID", this@MainActivity)
-      }
+   override fun noticeClickDisagree(event: NoticeClickDisagreeEvent) {
+      gimiiManager.execute(raiserId, this@MainActivity)
+   }
 })
 ```
 
-Replace the RAISER_ID with the one provided by the Gimii Team.
+The SDK will:
+- Fetch remote status and versions
+- Check CMP consent
+- Apply capping logic
+- Display the Gimii WebView flow when applicable
 
-### Tagging Google Ads (GAMRequest)
-
-If your app uses Google Ads (AdMob or GAM), you must apply Gimii's targeting tags to your `AdManagerAdRequest`:
+You can optionally inspect the last error (for diagnostics):
 
 ```kotlin
-var adRequest = AdManagerAdRequest.Builder()
-adRequest = GimiiManager.getInstance().applyAdTargeting(adRequest)
-bannerView.loadAd(adRequest.build())
+val lastError = gimii.currentError // type: fr.gimii.utils.GimiiError?
 ```
 
-This will automatically include the following targeting keys in your ad requests:
+### 5) Environments
+Available environments (see `gimii-android/src/main/java/fr/gimii/GimiiEnvironment.kt`):
+- `GimiiEnvironment.QA` → `https://qa.api.gimii.dev` / `https://qa.static.gimii.dev/app-mobile.html`
+- `GimiiEnvironment.STAGING` → `https://api.gimii.dev` / `https://static.gimii.dev/app-mobile.html`
+- `GimiiEnvironment.PRODUCTION` → `https://api.gimii.fr` / `https://static.gimii.fr/app-mobile.html`
 
-- `"gimii"`: The current raiser ID
-- `"gimii-asso"`: The selected association ID
-- `"gimii-cr"`: The concatenation between current raiser ID and selected association ID
+Select the environment when calling `GimiiManager.getInstance(...)`.
 
-These values are added to both `addCustomTargeting` and registered via `addNetworkExtrasBundle`, ensuring they are included in all ad requests.
+### 6) Logging
+`Logger.Mode` options (see `gimii-android/src/main/java/fr/gimii/utils/Logger.kt`):
+- `Logger.Mode.DEBUG` → prints DEBUG, INFO, ERROR, CRITICAL
+- `Logger.Mode.INFO` → prints INFO, ERROR, CRITICAL
+- `null` → disables all logs
+
+Set it via `GimiiManager.getInstance(logMode = Logger.Mode.DEBUG)` during initialization.
+
+### 7) Ad targeting (optional)
+If you use Google Ad Manager/AdMob, you can apply Gimii custom targeting to an `AdManagerAdRequest.Builder`:
+
+```kotlin
+import com.google.android.gms.ads.admanager.AdManagerAdRequest
+
+val builder = AdManagerAdRequest.Builder()
+val targetedBuilder = gimii.applyAdTargeting(builder)
+val adRequest = targetedBuilder.build()
+```
+
+When an association has been selected, the SDK will add the following custom targeting:
+- `gimii` → your `raiserId`
+- `gimii-asso` → selected association id
+- `gimii-cr` → composite key `${raiserId}-${associationId}`
+
+If no association is available yet, no tags are applied.
+
+### 8) CMP prerequisites (Didomi)
+The SDK relies on Didomi. Ensure that:
+- The Didomi SDK is added to your project
+- Didomi is initialized at app startup according to Didomi’s documentation
+
+### 9) Permissions
+Add the following to your app `AndroidManifest.xml` if not already present:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+### 10) Troubleshooting
+- Set `logMode = Logger.Mode.DEBUG` to get detailed logs in Logcat with tag `Gimii`
+- Verify `raiserId` is correct
+- Ensure Didomi is initialized and consent is accessible
+- Confirm network access and environment selection
+
+---
 
 That's it! Gimii will handle the display and logic.
 
