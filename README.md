@@ -75,18 +75,6 @@ Didomi.getInstance().addEventListener(object : EventListener() {
 })
 ```
 
-The SDK will:
-- Fetch remote status and versions
-- Check CMP consent
-- Apply capping logic
-- Display the Gimii WebView flow when applicable
-
-You can optionally inspect the last error (for diagnostics):
-
-```kotlin
-val lastError = gimii.currentError // type: fr.gimii.utils.GimiiError?
-```
-
 ### 5) Environments
 Available environments (see `gimii-android/src/main/java/fr/gimii/GimiiEnvironment.kt`):
 - `GimiiEnvironment.QA` → `https://qa.api.gimii.dev` / `https://qa.static.gimii.dev/app-mobile.html`
@@ -120,11 +108,6 @@ When an association has been selected, the SDK will add the following custom tar
 - `gimii-cr` → composite key `${raiserId}-${associationId}`
 
 If no association is available yet, no tags are applied.
-
-### 8) CMP prerequisites (Didomi)
-The SDK relies on Didomi. Ensure that:
-- The Didomi SDK is added to your project
-- Didomi is initialized at app startup according to Didomi’s documentation
 
 ### 9) Permissions
 Add the following to your app `AndroidManifest.xml` if not already present:
