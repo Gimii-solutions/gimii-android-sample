@@ -1,4 +1,3 @@
-![Demo Screenshot](https://github.com/Gimii-solutions/gimii-ios-demo/blob/bdefa8240d38efb1aac2bd8ca5ab1a6196771d59/demo.png)
 
 # Demo Android App for Gimii SDK
 
