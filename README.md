@@ -71,6 +71,26 @@ Didomi.getInstance().addEventListener(object : EventListener() {
       gimiiManager.execute(raiserId, this@MainActivity)
    }
 })
+
+// events listener
+
+gimiiManager.setEventListener(object : GimiiEventListener {
+    override fun onDisplayed() {
+        Log.d("GimiiDemoApp", "Gimii onDisplayed")
+    }
+
+    override fun onAccepted() {
+        Log.d("GimiiDemoApp", "Gimii onAccepted")
+    }
+
+    override fun onRefused() {
+        Log.d("GimiiDemoApp", "Gimii onRefused")
+    }
+
+    override fun onError(error: GimiiError) {
+        Log.d("GimiiDemoApp", "Gimii onError $error")
+     }
+})
 ```
 
 ### 5) Environments
