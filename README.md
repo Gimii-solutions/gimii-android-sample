@@ -1,5 +1,17 @@
 # Demo Android App for Gimii SDK
 
+## Run this sample
+
+1. Open the project in Android Studio.
+2. Replace the placeholders:
+
+| File | Value |
+|---|---|
+| `app/src/main/java/fr/gimii/gimiisampleapp/App.kt` | Didomi `API_KEY` and `NOTICE_ID` |
+| `app/src/main/java/fr/gimii/gimiisampleapp/MainActivity.kt` | `RAISER_ID` (the sample uses the staging environment) |
+| `app/src/main/AndroidManifest.xml` | Your AdMob application ID (`###########`) |
+
+3. Run the `app` configuration and tap "Disagree" on the Didomi notice: the Gimii pop-in appears.
 
 ## Integrate Gimii SDK in your app
 
