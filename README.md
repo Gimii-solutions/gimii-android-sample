@@ -10,7 +10,7 @@ In your app module `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fr.gimii:sdk:1.1.0-beta1")
+    implementation("fr.gimii:sdk:1.1.0-beta5")
 }
 ```
 
@@ -38,11 +38,18 @@ val parameters = DidomiInitializeParameters(
  )
 ```
 
-### 3) If using Google Ads, add your application id inside the manifest.
-```kotlin
-<meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="###########"/>
+### 3) Add your AdMob application ID to the manifest
+The SDK's manifest already declares an AdMob application ID. Override it with yours using `tools:replace`, otherwise the manifest merge fails.
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="###########"
+            tools:replace="android:value" />
+    </application>
+</manifest>
 ```
 
 
@@ -51,14 +58,18 @@ val parameters = DidomiInitializeParameters(
 Call Gimii from an `FragmentActivity` (e.g., your main Activity) after your CMP is ready:
 
 ```kotlin
-import fr.gimii.GimiiManager
+import android.util.Log
 import fr.gimii.GimiiEnvironment
-import fr.gimii.AppMode
-import fr.gimii.services.AdService
+import fr.gimii.GimiiEventListener
+import fr.gimii.GimiiManager
+import fr.gimii.utils.GimiiError
 import fr.gimii.utils.Logger
+import io.didomi.sdk.Didomi
+import io.didomi.sdk.events.EventListener
+import io.didomi.sdk.events.NoticeClickDisagreeEvent
 
 // ... inside an Activity (FragmentActivity)
-val gimii = GimiiManager.getInstance(
+val gimiiManager = GimiiManager.getInstance(
     environment = GimiiEnvironment.PRODUCTION, // QA | STAGING | PRODUCTION
     logMode = Logger.Mode.INFO                 // DEBUG for verbose logs, INFO for standard
 )
@@ -93,16 +104,18 @@ gimiiManager.setEventListener(object : GimiiEventListener {
 })
 ```
 
+`onError` is only called for network, configuration, consent and interaction errors. A display delay that has not elapsed yet is not reported.
+
 ### 5) Environments
-Available environments (see `gimii-android/src/main/java/fr/gimii/GimiiEnvironment.kt`):
-- `GimiiEnvironment.QA` → `https://qa.api.gimii.dev` / `https://qa.static.gimii.dev/app-mobile.html`
-- `GimiiEnvironment.STAGING` → `https://api.gimii.dev` / `https://static.gimii.dev/app-mobile.html`
-- `GimiiEnvironment.PRODUCTION` → `https://api.gimii.fr` / `https://static.gimii.fr/app-mobile.html`
+Available environments:
+- `GimiiEnvironment.QA` → `https://qa.api.gimii.dev` / `https://qa.static.gimii.dev/gimii-embedder.html`
+- `GimiiEnvironment.STAGING` → `https://api.gimii.dev` / `https://static.gimii.dev/gimii-embedder.html`
+- `GimiiEnvironment.PRODUCTION` → `https://api.gimii.fr` / `https://static.gimii.fr/gimii-embedder.html`
 
 Select the environment when calling `GimiiManager.getInstance(...)`.
 
 ### 6) Logging
-`Logger.Mode` options (see `gimii-android/src/main/java/fr/gimii/utils/Logger.kt`):
+`Logger.Mode` options:
 - `Logger.Mode.DEBUG` → prints DEBUG, INFO, ERROR, CRITICAL
 - `Logger.Mode.INFO` → prints INFO, ERROR, CRITICAL
 - `null` → disables all logs
@@ -116,7 +129,7 @@ If you use Google Ad Manager/AdMob, you can apply Gimii custom targeting to an `
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
 
 val builder = AdManagerAdRequest.Builder()
-val targetedBuilder = gimii.applyAdTargeting(builder)
+val targetedBuilder = gimiiManager.applyAdTargeting(builder)
 val adRequest = targetedBuilder.build()
 ```
 
@@ -127,12 +140,20 @@ When an association has been selected, the SDK will add the following custom tar
 
 If no association is available yet, no tags are applied.
 
-### 9) Permissions
+### 8) Permissions
 Add the following to your app `AndroidManifest.xml` if not already present:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+### 9) R8 / ProGuard
+The SDK does not ship keep rules yet. On a minified build, add to your `proguard-rules.pro`:
+
+```proguard
+-keep class fr.gimii.** { *; }
+-keep class androidx.work.** { *; }
 ```
 
 ### 10) Troubleshooting

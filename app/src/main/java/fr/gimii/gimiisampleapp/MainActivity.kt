@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.admanager.AdManagerAdRequest
+import fr.gimii.GimiiEnvironment
 import fr.gimii.GimiiManager
 import fr.gimii.gimiisampleapp.ui.theme.GimiiSampleAppTheme
 import io.didomi.sdk.Didomi
