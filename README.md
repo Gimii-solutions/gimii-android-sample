@@ -22,7 +22,7 @@ In your app module `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("fr.gimii:sdk:1.1.0-beta5")
+    implementation("fr.gimii:sdk:1.1.0-beta6")
 }
 ```
 
