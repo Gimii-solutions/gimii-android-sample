@@ -1,183 +1,88 @@
-# Demo Android App for Gimii SDK
+# Gimii Android sample
 
-## Run this sample
+A native Android application demonstrating Didomi, the Gimii pop-in, and a
+Google banner. For production integration and the current API, use the
+[Android SDK guide](https://github.com/Gimii-solutions/gimii-android/blob/main/gimii-android/README.md).
 
-1. Open the project in Android Studio.
-2. Replace the placeholders:
+## Dependency source and requirements
 
-| File | Value |
-|---|---|
-| `app/src/main/java/fr/gimii/gimiisampleapp/App.kt` | Didomi `API_KEY` and `NOTICE_ID` |
-| `app/src/main/java/fr/gimii/gimiisampleapp/MainActivity.kt` | `RAISER_ID` (the sample uses the staging environment) |
-| `app/src/main/AndroidManifest.xml` | Your AdMob application ID (`###########`) |
+The [app build file](app/build.gradle.kts) pins the published artifact
+`fr.gimii:sdk:1.1.0-beta6`. It also declares Didomi/Google dependencies. This is a
+consumer pin, not a statement of the latest available release or a connection
+to a sibling source checkout.
 
-3. Run the `app` configuration and tap "Disagree" on the Didomi notice: the Gimii pop-in appears.
+Use JDK 17, the included Gradle wrapper, Android platform 35, and a device or
+emulator running API 26+. Configure `ANDROID_HOME` or an ignored local SDK path.
+If an artifact cannot be resolved, check the pin against the intended available
+release instead of guessing a newer version.
 
-## Integrate Gimii SDK in your app
+For unreleased native SDK changes, use the SDK repository's demo and
+[development tests](https://github.com/Gimii-solutions/gimii-android/blob/main/README.md).
 
-This guide explains how to add the Gimii Android SDK to your application, configure environments, enable logging, and optionally apply ad targeting to Google Ad Manager/AdMob requests.
+## Configure and run
 
-### 1) Add the dependency
-In your app module `build.gradle.kts`:
+1. Open this repository in Android Studio and sync Gradle.
+2. Supply matching staging configuration in the files below.
+3. Run `app` on an emulator/device, answer the Didomi notice, and inspect Gimii's
+   eligibility flow. The sample executes once initially and again after refusal.
 
-```kotlin
-dependencies {
-    implementation("fr.gimii:sdk:1.1.0-beta6")
-}
+| File | Configuration |
+| --- | --- |
+| [App.kt](app/src/main/java/fr/gimii/gimiisampleapp/App.kt) | Didomi `API_KEY` and `NOTICE_ID`; application initialization |
+| [MainActivity.kt](app/src/main/java/fr/gimii/gimiisampleapp/MainActivity.kt) | `RAISER_ID`, environment, and banner integration |
+| [AndroidManifest.xml](app/src/main/AndroidManifest.xml) | Google's test application ID is included; use your own for production |
+
+An application ID is not a banner ad unit ID. Keep test ad units during
+integration and do not commit real configuration.
+
+From this repository root:
+
+```sh
+./gradlew :app:assembleDebug
+./gradlew :app:installDebug
 ```
 
-Make sure your project repositories include Maven Central (usually already present):
+Installation needs a booted emulator/device. Build success does not exercise a
+real Didomi notice, customer configuration, or ad attribution.
 
-```kotlin
-// settings.gradle.kts or top-level build.gradle.kts
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-```
+## Environments
 
-The Gimii SDK depends on:
-- Didomi SDK
-- Google Mobile Ads (for ad targeting)
+| Kotlin value | API origin | Static origin |
+| --- | --- | --- |
+| `DEV` | `https://api.gimii.dev` | `https://static.gimii.dev` |
+| `STAGING` | `https://api.staging.gimii.fr` | `https://static.staging.gimii.fr` |
+| `PRODUCTION` | `https://api.gimii.fr` | `https://static.gimii.fr` |
 
-### 2) Replace Didomi IDs, inside the App.kt.
-```kotlin
-val parameters = DidomiInitializeParameters(
-      apiKey = "API_KEY",
-      noticeId = "NOTICE_ID"
- )
-```
+The sample selects staging. These are the current source SDK mappings; verify
+that the published artifact selected by the sample includes the required
+embedder/environment changes.
 
-### 3) Add your AdMob application ID to the manifest
-The SDK's manifest already declares an AdMob application ID. Override it with yours using `tools:replace`, otherwise the manifest merge fails.
-```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-    <application>
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="###########"
-            tools:replace="android:value" />
-    </application>
-</manifest>
-```
+## What to verify
 
+- After refusal, display requires enabled services, valid configuration, and
+  elapsed capping. First-notice presentation alone does not prove eligibility.
+- Full consent collected directly by the CMP bypasses the initial pop-in.
+- After charity persistence, rebuild each Google Ad Manager request through the
+  same configured manager's `applyAdTargeting` method. Verify `gimii`,
+  `gimii-asso`, and `gimii-cr`; an existing request is not updated automatically.
+- Verify thank-you/reminder modes, privacy preferences, dismissal, and touch
+  pass-through on the intended device layout.
+- Test a minified release with host/vendor ProGuard requirements before shipping.
 
+Use `setEventListener` before execution when adapting the sample. SDK errors
+selected for callbacks differ from expected capping/disabled states: inspect
+`currentError` and native logs as described in the SDK guide. Keep the manager
+for the activity's flow and remove host-owned CMP listeners when appropriate.
 
-### 4) Initialize and start Gimii
-Call Gimii from an `FragmentActivity` (e.g., your main Activity) after your CMP is ready:
+## Troubleshooting
 
-```kotlin
-import android.util.Log
-import fr.gimii.GimiiEnvironment
-import fr.gimii.GimiiEventListener
-import fr.gimii.GimiiManager
-import fr.gimii.utils.GimiiError
-import fr.gimii.utils.Logger
-import io.didomi.sdk.Didomi
-import io.didomi.sdk.events.EventListener
-import io.didomi.sdk.events.NoticeClickDisagreeEvent
+| Problem | Check |
+| --- | --- |
+| No pop-in | Collected CMP answer, matching raiser/environment, service flags, and capping |
+| Ad app ID manifest conflict | Supply your own value; older SDK artifacts may require `tools:replace="android:value"` |
+| Missing attribution | New requests must be targeted after charity persistence |
+| Release-only failure | Host/vendor keep rules and real-device release validation |
+| Source change has no effect | This sample uses a published Maven artifact; choose the intended source consumer for unreleased work |
 
-// ... inside an Activity (FragmentActivity)
-val gimiiManager = GimiiManager.getInstance(
-    environment = GimiiEnvironment.PRODUCTION, // QA | STAGING | PRODUCTION
-    logMode = Logger.Mode.INFO                 // DEBUG for verbose logs, INFO for standard
-)
-
-gimiiManager.execute(raiserId, this)
-
-// Gimii is executed when the user refuse the CMP
-Didomi.getInstance().addEventListener(object : EventListener() {
-   override fun noticeClickDisagree(event: NoticeClickDisagreeEvent) {
-      gimiiManager.execute(raiserId, this@MainActivity)
-   }
-})
-
-// events listener
-
-gimiiManager.setEventListener(object : GimiiEventListener {
-    override fun onDisplayed() {
-        Log.d("GimiiDemoApp", "Gimii onDisplayed")
-    }
-
-    override fun onAccepted() {
-        Log.d("GimiiDemoApp", "Gimii onAccepted")
-    }
-
-    override fun onRefused() {
-        Log.d("GimiiDemoApp", "Gimii onRefused")
-    }
-
-    override fun onError(error: GimiiError) {
-        Log.d("GimiiDemoApp", "Gimii onError $error")
-     }
-})
-```
-
-`onError` is only called for network, configuration, consent and interaction errors. A display delay that has not elapsed yet is not reported.
-
-### 5) Environments
-Available environments:
-- `GimiiEnvironment.QA` → `https://qa.api.gimii.dev` / `https://qa.static.gimii.dev/gimii-embedder.html`
-- `GimiiEnvironment.STAGING` → `https://api.gimii.dev` / `https://static.gimii.dev/gimii-embedder.html`
-- `GimiiEnvironment.PRODUCTION` → `https://api.gimii.fr` / `https://static.gimii.fr/gimii-embedder.html`
-
-Select the environment when calling `GimiiManager.getInstance(...)`.
-
-### 6) Logging
-`Logger.Mode` options:
-- `Logger.Mode.DEBUG` → prints DEBUG, INFO, ERROR, CRITICAL
-- `Logger.Mode.INFO` → prints INFO, ERROR, CRITICAL
-- `null` → disables all logs
-
-Set it via `GimiiManager.getInstance(logMode = Logger.Mode.DEBUG)` during initialization.
-
-### 7) Ad targeting (optional)
-If you use Google Ad Manager/AdMob, you can apply Gimii custom targeting to an `AdManagerAdRequest.Builder`:
-
-```kotlin
-import com.google.android.gms.ads.admanager.AdManagerAdRequest
-
-val builder = AdManagerAdRequest.Builder()
-val targetedBuilder = gimiiManager.applyAdTargeting(builder)
-val adRequest = targetedBuilder.build()
-```
-
-When an association has been selected, the SDK will add the following custom targeting:
-- `gimii` → your `raiserId`
-- `gimii-asso` → selected association id
-- `gimii-cr` → composite key `${raiserId}-${associationId}`
-
-If no association is available yet, no tags are applied.
-
-### 8) Permissions
-Add the following to your app `AndroidManifest.xml` if not already present:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-```
-
-### 9) R8 / ProGuard
-The SDK does not ship keep rules yet. On a minified build, add to your `proguard-rules.pro`:
-
-```proguard
--keep class fr.gimii.** { *; }
--keep class androidx.work.** { *; }
-```
-
-### 10) Troubleshooting
-- Set `logMode = Logger.Mode.DEBUG` to get detailed logs in Logcat with tag `Gimii`
-- Verify `raiserId` is correct
-- Ensure Didomi is initialized and consent is accessible
-- Confirm network access and environment selection
-
----
-
-That's it! Gimii will handle the display and logic.
-
-## License
-
-© 2025 Gimii. All rights reserved.
+Use a dedicated test app install when clearing data to test fresh consent and
+capping. Select production values and disable debug logs for a production host.
