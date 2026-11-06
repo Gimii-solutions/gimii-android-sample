@@ -7,7 +7,7 @@ Google banner. For production integration and the current API, use the
 ## Dependency source and requirements
 
 The [app build file](app/build.gradle.kts) pins the published artifact
-`fr.gimii:sdk:1.1.0-beta6`. It also declares Didomi/Google dependencies. This is a
+`fr.gimii:sdk:1.1.0-beta7`. It also declares Didomi/Google dependencies. This is a
 consumer pin, not a statement of the latest available release or a connection
 to a sibling source checkout.
 
@@ -53,9 +53,8 @@ real Didomi notice, customer configuration, or ad attribution.
 | `STAGING` | `https://api.staging.gimii.fr` | `https://static.staging.gimii.fr` |
 | `PRODUCTION` | `https://api.gimii.fr` | `https://static.gimii.fr` |
 
-The sample selects staging. These are the current source SDK mappings; verify
-that the published artifact selected by the sample includes the required
-embedder/environment changes.
+The sample selects staging. The pinned `1.1.0-beta7` artifact includes these
+embedder/environment mappings and the reset fixes.
 
 ## What to verify
 

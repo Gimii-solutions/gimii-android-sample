@@ -40,7 +40,7 @@ android {
 }
 
 dependencies {
-    implementation("fr.gimii:sdk:1.1.0-beta6")
+    implementation("fr.gimii:sdk:1.1.0-beta7")
     implementation("io.didomi.sdk:android:2.26.0")
     implementation("com.google.android.gms:play-services-ads:23.5.0")
     implementation(libs.androidx.core.ktx)
